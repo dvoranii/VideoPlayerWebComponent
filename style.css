@@ -37,3 +37,7 @@ html {
 .playback-animation img {
   max-width: 150px;
 }
+
+#vid1 {
+  width: 70%;
+}

@@ -22,7 +22,7 @@ template.innerHTML = `
   );
 
   height: 100px;
-  max-width: 70%;
+  width: 69%;
   margin: 0 auto;
 }
 
@@ -237,8 +237,6 @@ class VideoPlayer extends HTMLElement {
     }
   }
 
-  // all the functions & variable declarations
-
   togglePlay() {
     const video = this.shadowRoot.querySelector("video");
     if (video.paused || video.ended) {
@@ -269,8 +267,10 @@ class VideoPlayer extends HTMLElement {
   }
 
   updateFullScreenBtn() {
-    const fullScreenBtn = document.querySelector(".fullscreen-btn");
-    const fullScreenIcons = document.querySelectorAll(".fullscreen-btn img");
+    const fullScreenBtn = this.shadowRoot.querySelector(".fullscreen-btn");
+    const fullScreenIcons = this.shadowRoot.querySelectorAll(
+      ".fullscreen-btn img"
+    );
     fullScreenIcons.forEach((icon) => icon.classList.toggle("hide"));
     if (document.fullscreenElement) {
       fullScreenBtn.setAttribute("data-title", "Exit full screen (f)");
@@ -278,20 +278,68 @@ class VideoPlayer extends HTMLElement {
       fullScreenBtn.setAttribute("data-title", "Full screen (f)");
     }
   }
+
+  // format time
+  formatTime(seconds) {
+    const result = new Date(seconds * 1000).toISOString().substr(11, 8);
+    return {
+      minutes: result.substr(3, 2),
+      seconds: result.substr(6, 2),
+    };
+  }
+
+  initializeVideo() {
+    const video = this.shadowRoot.querySelector("video");
+    const seek = this.shadowRoot.querySelector(".seek");
+    const progressBar = this.shadowRoot.querySelector("#progress-bar");
+    const duration = this.shadowRoot.getElementById("duration");
+    const videoDuration = Math.round(video.duration);
+    const time = this.formatTime(videoDuration);
+
+    seek.setAttribute("max", videoDuration);
+    progressBar.setAttribute("max", videoDuration);
+    duration.innerText = `${time.minutes}:${time.seconds}`;
+    duration.setAttribute("datetime", `${time.minutes}m ${time.seconds}`);
+  }
+
+  updateTimeElapsed() {
+    const video = this.shadowRoot.querySelector("video");
+    const timeElapsed = this.shadowRoot.getElementById("time-elapsed");
+    const time = this.formatTime(Math.round(video.currentTime));
+
+    timeElapsed.innerText = `${time.minutes}:${time.seconds}`;
+    timeElapsed.setAttribute("datetime", `${time.minutes}m ${time.seconds}s`);
+  }
+
   // Connecting events to methods
   connectedCallback() {
-    // all the event listeners
-
+    // play button play
     this.shadowRoot.querySelector("#play-btn").addEventListener("click", () => {
       this.togglePlay();
       this.updatePlayBtn();
     });
 
+    // video play
     this.shadowRoot.querySelector("video").addEventListener("click", () => {
       this.togglePlay();
       this.updatePlayBtn();
     });
 
+    // initialize video
+    this.shadowRoot
+      .querySelector("video")
+      .addEventListener("loadedmetadata", () => {
+        this.initializeVideo();
+      });
+
+    // update time
+    this.shadowRoot
+      .querySelector("video")
+      .addEventListener("timeupdate", () => {
+        this.updateTimeElapsed();
+      });
+
+    // // fullscreen
     this.shadowRoot
       .querySelector(".fullscreen-btn")
       .addEventListener("click", () => {
