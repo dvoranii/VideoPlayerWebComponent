@@ -1,3 +1,9 @@
+// might need to use mediaSession api for mobile
+// add plabackrate functionality
+// clean up design/ change icons
+// make sure its cross-browser compatible
+// figure out how to have the controls fit the video size
+
 const template = document.createElement("template");
 template.innerHTML = `
 <style>
@@ -162,7 +168,7 @@ button:hover::before {
 
 <div class="video-container">
 <video controls class="video" id="video" preload="metadata" poster="/assets/poster.jpg">
-    <source src="/assets/video.mp4" type="video/mp4"></source>
+    <source src="" type="video/mp4"></source>
   </video>
 
   <div class="video-controls" id="video-controls">
@@ -237,8 +243,7 @@ class VideoPlayer extends HTMLElement {
     }
   }
 
-  togglePlay() {
-    const video = this.shadowRoot.querySelector("video");
+  togglePlay(video) {
     if (video.paused || video.ended) {
       video.play();
     } else {
@@ -288,11 +293,7 @@ class VideoPlayer extends HTMLElement {
     };
   }
 
-  initializeVideo() {
-    const video = this.shadowRoot.querySelector("video");
-    const seek = this.shadowRoot.querySelector(".seek");
-    const progressBar = this.shadowRoot.querySelector("#progress-bar");
-    const duration = this.shadowRoot.getElementById("duration");
+  initializeVideo(video, seek, progressBar, duration) {
     const videoDuration = Math.round(video.duration);
     const time = this.formatTime(videoDuration);
 
@@ -302,54 +303,62 @@ class VideoPlayer extends HTMLElement {
     duration.setAttribute("datetime", `${time.minutes}m ${time.seconds}`);
   }
 
-  updateTimeElapsed() {
-    const video = this.shadowRoot.querySelector("video");
-    const timeElapsed = this.shadowRoot.getElementById("time-elapsed");
+  updateTimeElapsed(video, timeElapsed) {
     const time = this.formatTime(Math.round(video.currentTime));
 
     timeElapsed.innerText = `${time.minutes}:${time.seconds}`;
     timeElapsed.setAttribute("datetime", `${time.minutes}m ${time.seconds}s`);
   }
 
-  // Connecting events to methods
+  updateProgress(video, seek, progressBar) {
+    seek.value = Math.floor(video.currentTime);
+    progressBar.value = Math.floor(video.currentTime);
+  }
+
+  // // Connecting events to methods
   connectedCallback() {
     // play button play
-    this.shadowRoot.querySelector("#play-btn").addEventListener("click", () => {
-      this.togglePlay();
+    const video = this.shadowRoot.querySelector("video");
+    const timeElapsed = this.shadowRoot.getElementById("time-elapsed");
+    const fullScreenBtn = this.shadowRoot.querySelector(".fullscreen-btn");
+    const playBtn = this.shadowRoot.querySelector("#play-btn");
+    const pip = this.shadowRoot.querySelector(".pip-btn");
+    const seek = this.shadowRoot.querySelector(".seek");
+    const progressBar = this.shadowRoot.querySelector("#progress-bar");
+    const duration = this.shadowRoot.getElementById("duration");
+
+    pip.addEventListener("click", () => {
+      video.playbackRate = 3;
+    });
+
+    playBtn.addEventListener("click", () => {
+      this.togglePlay(video);
       this.updatePlayBtn();
     });
 
     // video play
-    this.shadowRoot.querySelector("video").addEventListener("click", () => {
-      this.togglePlay();
+    video.addEventListener("click", () => {
+      this.togglePlay(video);
       this.updatePlayBtn();
     });
 
     // initialize video
-    this.shadowRoot
-      .querySelector("video")
-      .addEventListener("loadedmetadata", () => {
-        this.initializeVideo();
-      });
+    video.addEventListener("loadedmetadata", () => {
+      this.initializeVideo(video, seek, progressBar, duration);
+    });
 
     // update time
-    this.shadowRoot
-      .querySelector("video")
-      .addEventListener("timeupdate", () => {
-        this.updateTimeElapsed();
-      });
+    video.addEventListener("timeupdate", () => {
+      this.updateTimeElapsed(video, timeElapsed);
+      this.updateProgress(video, seek, progressBar);
+    });
 
     // // fullscreen
-    this.shadowRoot
-      .querySelector(".fullscreen-btn")
-      .addEventListener("click", () => {
-        this.toggleFullScreen();
-        this.updateFullScreenBtn();
-      });
+    fullScreenBtn.addEventListener("click", () => {
+      this.toggleFullScreen();
+      this.updateFullScreenBtn();
+    });
   }
 }
 
 window.customElements.define("video-player", VideoPlayer);
-
-// understand the connected callback funciton and
-// how web components get implemented in the browser
