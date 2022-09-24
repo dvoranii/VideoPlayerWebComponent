@@ -164,6 +164,39 @@ button:hover::before {
   display: none;
 }
 
+.time {
+  padding-top: 12px;
+  color:#f5f5f5;
+}
+.settings {
+  position: relative;
+}
+.settings-list {
+  background-color: #333333;
+  padding: 10px 20px;
+  position: absolute;
+  top: -220%;
+  left:-50%;
+  width:250px;
+}
+
+.settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-option img {
+  width: 40px;
+  height: 40px;
+}
+
+.option-setting {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.settings
 </style>
 
 <div class="video-container">
@@ -200,6 +233,25 @@ button:hover::before {
             <time id="time-elapsed">00:00</time>
             <span> / </span>
             <time id="duration">00:00</time>
+          </div>
+
+          <div class="settings">
+            <img src="/assets/settings.png">
+            <div class="settings-list">
+
+              <div class="settings-option">
+                <img src="/assets/playbackRate-icon.png">
+                <p class="option-title">Playback Rate</p>
+                <a href="#" class="option-setting">Normal ▶</a>
+              </div>
+
+              <div class="settings-option">
+              <img src="/assets/playbackRate-icon.png">
+              <p class="option-title">Video Quality</p>
+              <a href="#" class="option-setting">Normal ▶</a>
+            </div>
+          
+            </div>
           </div>
         </div>
 
@@ -328,7 +380,7 @@ class VideoPlayer extends HTMLElement {
     const duration = this.shadowRoot.getElementById("duration");
 
     pip.addEventListener("click", () => {
-      video.playbackRate = 3;
+      // video.playbackRate = 3;
     });
 
     playBtn.addEventListener("click", () => {
