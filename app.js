@@ -127,6 +127,16 @@ progress::-moz-progress-bar {
   padding-bottom: 18px;
 }
 
+.volume-controls, .time {
+  display: flex;
+  align-items: center;
+}
+
+.time {
+  color:#f5f5f5;
+  margin-left:10px;
+}
+
 button {
   cursor: pointer;
   position: relative;
@@ -161,23 +171,81 @@ button:hover::before {
 }
 
 .hide {
-  display: none;
+  visibility: hidden;
+  opacity: 0;
+  width: 0px;
 }
 
-.time {
-  padding-top: 12px;
-  color:#f5f5f5;
-}
 .settings {
   position: relative;
 }
+
+.settings button {
+  margin-left: 20px;
+}
 .settings-list {
   background-color: #333333;
-  padding: 10px 20px;
+  overflow: hidden;
   position: absolute;
-  top: -220%;
-  left:-50%;
-  width:250px;
+  top: -205%;
+  min-width:fit-content;
+  width: 220px;
+  transition: all 150ms ease;
+}
+
+.playback-options {
+  position: absolute;
+}
+
+.settings-list.playback-active {
+  
+}
+
+.settings-list-wrapper-outer{
+  display: flex;
+  width: 300px;
+}
+
+.settings-list:not(.hide){
+  animation: fadeInScaleUp 150ms ease-in;
+  animation-fill-mode: forwards;
+  transform-origin: bottom left;
+}
+
+.settings-list.hide {
+  animation: fadeOutScaleDown 150ms ease-out;
+  animation-fill-mode: forwards;
+  transform-origin: bottom left;
+}
+
+
+
+@keyframes fadeInScaleUp {
+  from {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0);
+  }
+
+  to {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOutScaleDown {
+  from {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0);
+  }
 }
 
 .settings-option {
@@ -185,6 +253,7 @@ button:hover::before {
   justify-content: space-between;
   align-items: center;
 }
+
 
 .settings-option img {
   width: 40px;
@@ -194,9 +263,21 @@ button:hover::before {
 .option-setting {
   text-decoration: none;
   color: #ffffff;
+  transition: all 250ms ease;
+  position: relative;
+  min-width: 90px;
 }
 
-.settings
+.option-setting:hover {
+  color: #bbbbbb;
+}
+
+.option-title {
+  min-width: 130px;
+  padding-left: 10px;
+}
+
+
 </style>
 
 <div class="video-container">
@@ -236,21 +317,32 @@ button:hover::before {
           </div>
 
           <div class="settings">
-            <img src="/assets/settings.png">
+            <button data-title="Settings (s)" class="settings-btn">
+              <img src="/assets/settings.png">
+            </button>
             <div class="settings-list">
-
-              <div class="settings-option">
+            <div class="settings-list-wrapper-outer">
+            <div class="settings-list-wrapper-inner">
+            <div class="settings-option">
                 <img src="/assets/playbackRate-icon.png">
                 <p class="option-title">Playback Rate</p>
+                <a href="#" class="option-setting playback">Normal ▶</a>
+              </div>
+              <div class="settings-option">
+                <img src="/assets/playbackRate-icon.png">
+                <p class="option-title">Video Quality</p>
                 <a href="#" class="option-setting">Normal ▶</a>
               </div>
-
-              <div class="settings-option">
-              <img src="/assets/playbackRate-icon.png">
-              <p class="option-title">Video Quality</p>
-              <a href="#" class="option-setting">Normal ▶</a>
             </div>
-          
+              <div class="playback-options">
+              <ul>
+              <li>sdf</li>
+              <li>sdf</li>
+              <li>sdf</li>
+              <li>sdf</li>
+              </ul>
+              </div>
+            </div>     
             </div>
           </div>
         </div>
@@ -308,8 +400,7 @@ class VideoPlayer extends HTMLElement {
     playbackBtns.forEach((btn) => btn.classList.toggle("hide"));
   }
 
-  toggleFullScreen() {
-    const videoContainer = this.shadowRoot.querySelector(".video-container");
+  toggleFullScreen(videoContainer) {
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else if (document.webkitFullscreenElement) {
@@ -323,11 +414,7 @@ class VideoPlayer extends HTMLElement {
     }
   }
 
-  updateFullScreenBtn() {
-    const fullScreenBtn = this.shadowRoot.querySelector(".fullscreen-btn");
-    const fullScreenIcons = this.shadowRoot.querySelectorAll(
-      ".fullscreen-btn img"
-    );
+  updateFullScreenBtn(fullScreenIcons, fullScreenBtn) {
     fullScreenIcons.forEach((icon) => icon.classList.toggle("hide"));
     if (document.fullscreenElement) {
       fullScreenBtn.setAttribute("data-title", "Exit full screen (f)");
@@ -367,17 +454,45 @@ class VideoPlayer extends HTMLElement {
     progressBar.value = Math.floor(video.currentTime);
   }
 
+  toggleShowSettings(settingsList) {
+    settingsList.classList.toggle("hide");
+  }
+
+  showPlaybackOptions(settingsList, settingsOptions) {
+    settingsOptions.forEach((setting) => {
+      setting.classList.add("hide");
+    });
+    settingsList.classList.add("playback-active");
+  }
+
   // // Connecting events to methods
   connectedCallback() {
     // play button play
     const video = this.shadowRoot.querySelector("video");
+    const videoContainer = this.shadowRoot.querySelector(".video-container");
     const timeElapsed = this.shadowRoot.getElementById("time-elapsed");
     const fullScreenBtn = this.shadowRoot.querySelector(".fullscreen-btn");
+    const fullScreenIcons = this.shadowRoot.querySelectorAll(
+      ".fullscreen-btn img"
+    );
+
     const playBtn = this.shadowRoot.querySelector("#play-btn");
     const pip = this.shadowRoot.querySelector(".pip-btn");
     const seek = this.shadowRoot.querySelector(".seek");
     const progressBar = this.shadowRoot.querySelector("#progress-bar");
     const duration = this.shadowRoot.getElementById("duration");
+
+    const settingsBtn = this.shadowRoot.querySelector(".settings-btn");
+    const settingsList = this.shadowRoot.querySelector(".settings-list");
+    const settingsOptions =
+      this.shadowRoot.querySelectorAll(".settings-option");
+    const playbackOptions = this.shadowRoot.querySelector(
+      ".option-setting.playback"
+    );
+
+    playbackOptions.addEventListener("click", () => {
+      this.showPlaybackOptions(settingsList, settingsOptions);
+    });
 
     pip.addEventListener("click", () => {
       // video.playbackRate = 3;
@@ -407,8 +522,13 @@ class VideoPlayer extends HTMLElement {
 
     // // fullscreen
     fullScreenBtn.addEventListener("click", () => {
-      this.toggleFullScreen();
-      this.updateFullScreenBtn();
+      this.toggleFullScreen(videoContainer);
+      this.updateFullScreenBtn(fullScreenIcons, fullScreenBtn);
+    });
+
+    // settings
+    settingsBtn.addEventListener("click", () => {
+      this.toggleShowSettings(settingsList);
     });
   }
 }
