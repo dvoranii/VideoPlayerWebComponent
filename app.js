@@ -141,8 +141,7 @@ button {
   cursor: pointer;
   position: relative;
   margin-right: 7px;
-  font-size: 12px;
-  padding: 3px;
+
   border: none;
   outline: none;
   background-color: transparent;
@@ -166,9 +165,21 @@ button::before {
   white-space: pre;
 }
 
+button#close-btn::before {
+  display: none;
+}
+
+#close-btn {
+  transition: all 150ms ease;
+}
+#close-btn:hover {
+  color: white;
+}
+
 button:hover::before {
   display: inline-block;
 }
+
 
 .hide {
   visibility: hidden;
@@ -180,12 +191,9 @@ button:hover::before {
   position: relative;
 }
 
-.settings button {
-  margin-left: 20px;
-}
+
 .settings-list {
   background-color: #333333;
-  overflow: hidden;
   position: absolute;
   top: -205%;
   min-width:fit-content;
@@ -195,6 +203,9 @@ button:hover::before {
 
 .playback-options {
   position: absolute;
+  background-color: red;
+  width:300px;
+  top: -28px;
 }
 
 .settings-list.playback-active {
@@ -203,6 +214,10 @@ button:hover::before {
 
 .settings-list-wrapper-outer{
   display: flex;
+  width: 300px;
+}
+
+.settings-list-wrapper-inner {
   width: 300px;
 }
 
@@ -281,7 +296,7 @@ button:hover::before {
 </style>
 
 <div class="video-container">
-<video controls class="video" id="video" preload="metadata" poster="/assets/poster.jpg">
+<video controls class="video" id="video" preload="metadata" poster="./assets/poster.jpg">
     <source src="" type="video/mp4"></source>
   </video>
 
@@ -295,15 +310,15 @@ button:hover::before {
     <div class="bottom-controls">
         <div class="left-controls">
             <button data-title="Play (k)" id="play-btn">
-                <img src="/assets/play-btn.png" alt="" class="play">
-                <img src="/assets/pause-btn.png" alt="" class="pause hide">
+                <img src="./assets/play-btn.png" alt="" class="play">
+                <img src="./assets/pause-btn.png" alt="" class="pause hide">
             </button>
 
           <div class="volume-controls">
             <button data-title="Mute (m)" class="volume-btn" id="volume-button">
-                <img src="/assets/volume-up.png" alt="" class="volume-up">
-                <img src="/assets/volume-low.png" alt="" class="volume-low hide">
-                <img src="/assets/volume-mute.png" alt="" class="volume-mute hide">
+                <img src="./assets/volume-up.png" alt="" class="volume-up">
+                <img src="./assets/volume-low.png" alt="" class="volume-low hide">
+                <img src="./assets/volume-mute.png" alt="" class="volume-mute hide">
             </button>
 
             <input class="volume" id="volume" value="1"
@@ -318,23 +333,24 @@ button:hover::before {
 
           <div class="settings">
             <button data-title="Settings (s)" class="settings-btn">
-              <img src="/assets/settings.png">
+              <img src="./assets/settings.png">
             </button>
             <div class="settings-list">
             <div class="settings-list-wrapper-outer">
             <div class="settings-list-wrapper-inner">
             <div class="settings-option">
-                <img src="/assets/playbackRate-icon.png">
+                <img src="./assets/playbackRate-icon.png">
                 <p class="option-title">Playback Rate</p>
                 <a href="#" class="option-setting playback">Normal ▶</a>
               </div>
               <div class="settings-option">
-                <img src="/assets/playbackRate-icon.png">
+                <img src="./assets/playbackRate-icon.png">
                 <p class="option-title">Video Quality</p>
                 <a href="#" class="option-setting">Normal ▶</a>
               </div>
             </div>
-              <div class="playback-options">
+              <div class="playback-options hide">
+              <button id="close-btn">✖</button>
               <ul>
               <li>sdf</li>
               <li>sdf</li>
@@ -349,11 +365,11 @@ button:hover::before {
 
         <div class="right-controls">
             <button data-title="PIP (p)" class="pip-btn" id="pip-btn">
-                <img src="/assets/pip-icon.png" alt="">
+                <img src="./assets/pip-icon.png" alt="">
             </button>
             <button class="fullscreen-btn" id="fullscreen-btn" data-title="Fullscreen (f)">
-                <img src="/assets/fullscreen-icon.png" alt="" class="fullscreen">
-                <img src="/assets/minimize-icon.png" alt="" class="fullscreen-exit hide">
+                <img src="./assets/fullscreen-icon.png" alt="" class="fullscreen">
+                <img src="./assets/minimize-icon.png" alt="" class="fullscreen-exit hide">
             </button>
         </div>
       </div>
@@ -454,17 +470,6 @@ class VideoPlayer extends HTMLElement {
     progressBar.value = Math.floor(video.currentTime);
   }
 
-  toggleShowSettings(settingsList) {
-    settingsList.classList.toggle("hide");
-  }
-
-  showPlaybackOptions(settingsList, settingsOptions) {
-    settingsOptions.forEach((setting) => {
-      setting.classList.add("hide");
-    });
-    settingsList.classList.add("playback-active");
-  }
-
   // // Connecting events to methods
   connectedCallback() {
     // play button play
@@ -482,16 +487,21 @@ class VideoPlayer extends HTMLElement {
     const progressBar = this.shadowRoot.querySelector("#progress-bar");
     const duration = this.shadowRoot.getElementById("duration");
 
-    const settingsBtn = this.shadowRoot.querySelector(".settings-btn");
-    const settingsList = this.shadowRoot.querySelector(".settings-list");
-    const settingsOptions =
-      this.shadowRoot.querySelectorAll(".settings-option");
-    const playbackOptions = this.shadowRoot.querySelector(
+    const playbackSetting = this.shadowRoot.querySelector(
       ".option-setting.playback"
     );
+    const settingsList = this.shadowRoot.querySelector(".settings-list");
 
-    playbackOptions.addEventListener("click", () => {
-      this.showPlaybackOptions(settingsList, settingsOptions);
+    const playbackOptions = this.shadowRoot.querySelector(".playback-options");
+    const settingsBtn = this.shadowRoot.querySelector(".settings-btn");
+    const closeBtn = this.shadowRoot.querySelector("#close-btn");
+
+    playbackSetting.addEventListener("click", () => {
+      playbackOptions.classList.remove("hide");
+    });
+
+    closeBtn.addEventListener("click", () => {
+      playbackOptions.classList.add("hide");
     });
 
     pip.addEventListener("click", () => {
@@ -528,7 +538,7 @@ class VideoPlayer extends HTMLElement {
 
     // settings
     settingsBtn.addEventListener("click", () => {
-      this.toggleShowSettings(settingsList);
+      settingsList.classList.toggle("hide");
     });
   }
 }
