@@ -416,17 +416,22 @@ class VideoPlayer extends HTMLElement {
     playbackBtns.forEach((btn) => btn.classList.toggle("hide"));
   }
 
-  toggleFullScreen(videoContainer) {
+  toggleFullScreen(videoContainer, videoControls) {
     if (document.fullscreenElement) {
       document.exitFullscreen();
+      // videoControls.style.maxWidth = "80%";
+      videoControls.style.width = "80%";
     } else if (document.webkitFullscreenElement) {
       // Need this to support Safari
       document.webkitExitFullscreen();
+      videoControls.style.width = "80%";
     } else if (videoContainer.webkitRequestFullscreen) {
       // Need this to support Safari
       videoContainer.webkitRequestFullscreen();
+      videoControls.style.width = "100%";
     } else {
       videoContainer.requestFullscreen();
+      videoControls.style.width = "100%";
     }
   }
 
@@ -469,6 +474,21 @@ class VideoPlayer extends HTMLElement {
     seek.value = Math.floor(video.currentTime);
     progressBar.value = Math.floor(video.currentTime);
   }
+  someFunction() {
+    console.log("function called");
+  }
+
+  updateSeekTooltip(e, video, seek, seekTooltip) {
+    const skipTo = Math.round(
+      (e.offsetX / e.target.clientWidth) *
+        parseInt(e.target.getAttribute("max"), 10)
+    );
+    seek.setAttribute("data-seek", skipTo);
+    const t = this.formatTime(skipTo);
+    seekTooltip.textContent = `${t.minutes}:${t.seconds}`;
+    const rect = video.getBoundingClientRect();
+    seekTooltip.style.left = `${e.pageX - rect.left}px`;
+  }
 
   // // Connecting events to methods
   connectedCallback() {
@@ -480,10 +500,14 @@ class VideoPlayer extends HTMLElement {
     const fullScreenIcons = this.shadowRoot.querySelectorAll(
       ".fullscreen-btn img"
     );
+    const videoControls = this.shadowRoot.querySelector(".video-controls");
 
     const playBtn = this.shadowRoot.querySelector("#play-btn");
     const pip = this.shadowRoot.querySelector(".pip-btn");
+
     const seek = this.shadowRoot.querySelector(".seek");
+    const seekTooltip = this.shadowRoot.querySelector(".seek-tooltip");
+
     const progressBar = this.shadowRoot.querySelector("#progress-bar");
     const duration = this.shadowRoot.getElementById("duration");
 
@@ -532,13 +556,17 @@ class VideoPlayer extends HTMLElement {
 
     // // fullscreen
     fullScreenBtn.addEventListener("click", () => {
-      this.toggleFullScreen(videoContainer);
+      this.toggleFullScreen(videoContainer, videoControls);
       this.updateFullScreenBtn(fullScreenIcons, fullScreenBtn);
     });
 
     // settings
     settingsBtn.addEventListener("click", () => {
       settingsList.classList.toggle("hide");
+    });
+
+    seek.addEventListener("mousemove", (e) => {
+      this.updateSeekTooltip(e, video, seek, seekTooltip);
     });
   }
 }
