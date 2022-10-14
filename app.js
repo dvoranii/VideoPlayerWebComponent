@@ -11,15 +11,10 @@ template.innerHTML = `
 .video {
   width: 100%;
   height: auto;
-  aspect-ratio: 16/9;
+  margin-bottom: -6px;
 }
 
 .video-controls {
-  right: 0;
-  left: 0;
-  bottom: 0;
-  padding: 10px;
-  position: absolute;
   transition: all 0.2s ease;
   background-image: linear-gradient(
     to bottom,
@@ -27,15 +22,21 @@ template.innerHTML = `
     rgba(0, 0, 0, 0.5)
   );
 
-  height: 100px;
-  width: 69%;
   margin: 0 auto;
+
+}
+
+.video-controls.fullScreenActive {
+  right: 0;
+  left: 0;
+  bottom: 0;
+  padding: 10px;
+  position: absolute;
+
 }
 
 .video-progress {
   position: relative;
-  height: 8.4px;
-  margin-bottom: 10px;
 }
 
 progress {
@@ -48,6 +49,7 @@ progress {
   pointer-events: none;
   position: absolute;
   top: 0;
+  z-index: -1;
 }
 
 progress::-webkit-progress-bar {
@@ -74,17 +76,18 @@ progress::-moz-progress-bar {
   display: flex;
 }
 
-.bottom-controls {
+
+.bottom-controls-wrapper {
   display: flex;
   justify-content: space-between;
+  padding: 10px;
 }
 
 .seek {
-  position: absolute;
-  top: 0;
-  width: 100%;
+  width: 99%;
+  padding-left: 10px;
   cursor: pointer;
-  height: 8.4px;
+  height: 8.6px;
 }
 
 .seek:hover + .seek-tooltip {
@@ -124,7 +127,6 @@ progress::-moz-progress-bar {
 }
 
 .volume {
-  padding-bottom: 18px;
 }
 
 .volume-controls, .time {
@@ -292,6 +294,167 @@ button:hover::before {
   padding-left: 10px;
 }
 
+/************************** */
+.settings-menu {
+  position: absolute;
+  display: flex;
+  bottom: 58px;
+  width: 220%;
+  background: red;
+  visibility: hidden;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  animation: slideDownFadeOut 250ms ease;
+  animation-fill-mode: forwards;
+  transition: all 250ms ease;
+}
+
+.settings-menu.active {
+  pointer-events: all;
+  animation: slideUpFadeIn 250ms ease;
+  animation-fill-mode: forwards;
+}
+
+/* .settings-menu:not(.active) {
+
+} */
+
+.settings-menu .list-first {
+  list-style: none;
+}
+
+.list-main,
+.list-second,
+.list-third,
+.list-fourth {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  /* background-color: blue; */
+  width: 100%;
+  padding: 10px;
+}
+
+.list-main {
+  background: yellow;
+  height: 100px;
+  animation: slideRight 250ms ease;
+  list-style: none;
+}
+.list-main.optionClicked {
+  animation: slideLeft 250ms ease;
+  animation-fill-mode: forwards;
+}
+.list-second.optionClicked {
+  animation: slideLeftMore 250ms ease;
+  animation-fill-mode: forwards;
+}
+.list-third.optionClicked {
+  animation: slideLeftMore 250ms ease;
+  animation-fill-mode: forwards;
+}
+.list-fourth.optionClicked {
+  animation: slideLeftMore 250ms ease;
+  animation-fill-mode: forwards;
+}
+.list-second {
+  background-color: blue;
+  position: absolute;
+  list-style: none;
+  right: -100%;
+  height: 100%;
+  animation: slideRight 250ms ease;
+}
+
+.list-third {
+  background-color: orange;
+  position: absolute;
+  list-style: none;
+  right: -100%;
+  height: 100%;
+}
+.list-fourth {
+  background-color: cyan;
+  position: absolute;
+  list-style: none;
+  right: -100%;
+  height: 100%;
+}
+
+@keyframes slideUpFadeIn {
+  from {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+.menu-back {
+  border: none;
+  cursor: pointer;
+}
+
+.menu-back::before {
+  content: "<";
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 4px 8px;
+}
+@keyframes slideDownFadeOut {
+  from {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  to {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    transform: translateX(0%);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* rename this */
+@keyframes slideLeftMore {
+  from {
+    right: -100%;
+  }
+
+  to {
+    right: 0%;
+  }
+}
+
+@keyframes slideRight {
+  from {
+    transform: translate(-100%);
+  }
+  to {
+    transform: translateX(0%);
+  }
+}
+
+/* @keyframes slideRight {
+} */
+
+
 
 </style>
 
@@ -308,6 +471,7 @@ button:hover::before {
     </div>
 
     <div class="bottom-controls">
+    <div class="bottom-controls-wrapper">
         <div class="left-controls">
             <button data-title="Play (k)" id="play-btn">
                 <img src="./assets/play-btn.png" alt="" class="play">
@@ -335,31 +499,47 @@ button:hover::before {
             <button data-title="Settings (s)" class="settings-btn">
               <img src="./assets/settings.png">
             </button>
-            <div class="settings-list">
-            <div class="settings-list-wrapper-outer">
-            <div class="settings-list-wrapper-inner">
-            <div class="settings-option">
-                <img src="./assets/playbackRate-icon.png">
-                <p class="option-title">Playback Rate</p>
-                <a href="#" class="option-setting playback">Normal ▶</a>
-              </div>
-              <div class="settings-option">
-                <img src="./assets/playbackRate-icon.png">
-                <p class="option-title">Video Quality</p>
-                <a href="#" class="option-setting">Normal ▶</a>
-              </div>
-            </div>
-              <div class="playback-options hide">
-              <button id="close-btn">✖</button>
-              <ul>
-              <li>sdf</li>
-              <li>sdf</li>
-              <li>sdf</li>
-              <li>sdf</li>
-              </ul>
-              </div>
-            </div>     
-            </div>
+
+            <!---------------------------------------------------- -->
+        <div class="settings-menu">
+          <ul class="list-main">
+            <li><a href="#" data-option="0">Option 1</a></li>
+            <li><a href="#" data-option="1">Option 2</a></li>
+            <!-- <li><a href="#" data-option="2">Option 3</a></li> -->
+          </ul>
+          <ul class="list-second">
+            <button class="menu-back"></button>
+            <li><a href="#" data-option="0">Option 1</a></li>
+            <li><a href="#" data-option="1">Option 2</a></li>
+            <li><a href="#" data-option="2">Option 3</a></li>
+            <li><a href="#" data-option="3">Option 4</a></li>
+            <li><a href="#" data-option="4">Option 5</a></li>
+            <li><a href="#" data-option="5">Option 6</a></li>
+          </ul>
+
+          <ul class="list-third">
+            <button class="menu-back"></button>
+            <li><a href="#" data-option="0">Option 1</a></li>
+            <li><a href="#" data-option="1">Option 2</a></li>
+            <li><a href="#" data-option="2">Option 3</a></li>
+            <li><a href="#" data-option="3">Option 4</a></li>
+            <li><a href="#" data-option="4">Option 5</a></li>
+            <li><a href="#" data-option="5">Option 6</a></li>
+          </ul>
+          <ul class="list-fourth">
+            <button class="menu-back"></button>
+            <li><a href="#" data-option="0">Option 1</a></li>
+            <li><a href="#" data-option="1">Option 2</a></li>
+            <li><a href="#" data-option="2">Option 3</a></li>
+            <li><a href="#" data-option="3">Option 4</a></li>
+            <li><a href="#" data-option="4">Option 5</a></li>
+            <li><a href="#" data-option="5">Option 6</a></li>
+          </ul>
+        </div>
+
+      <!---------------------------------------------------- -->
+            
+      
           </div>
         </div>
 
@@ -372,8 +552,8 @@ button:hover::before {
                 <img src="./assets/minimize-icon.png" alt="" class="fullscreen-exit hide">
             </button>
         </div>
+        </div>
       </div>
-
   </div>
 </div>
 `;
@@ -419,19 +599,20 @@ class VideoPlayer extends HTMLElement {
   toggleFullScreen(videoContainer, videoControls) {
     if (document.fullscreenElement) {
       document.exitFullscreen();
-      // videoControls.style.maxWidth = "80%";
-      videoControls.style.width = "80%";
+      videoControls.classList.remove("fullScreenActive");
     } else if (document.webkitFullscreenElement) {
       // Need this to support Safari
       document.webkitExitFullscreen();
-      videoControls.style.width = "80%";
+      videoControls.classList.remove("fullScreenActive");
     } else if (videoContainer.webkitRequestFullscreen) {
       // Need this to support Safari
       videoContainer.webkitRequestFullscreen();
       videoControls.style.width = "100%";
+      videoControls.classList.add("fullScreenActive");
     } else {
       videoContainer.requestFullscreen();
       videoControls.style.width = "100%";
+      videoControls.classList.add("fullScreenActive");
     }
   }
 
@@ -474,9 +655,6 @@ class VideoPlayer extends HTMLElement {
     seek.value = Math.floor(video.currentTime);
     progressBar.value = Math.floor(video.currentTime);
   }
-  someFunction() {
-    console.log("function called");
-  }
 
   updateSeekTooltip(e, video, seek, seekTooltip) {
     const skipTo = Math.round(
@@ -490,6 +668,38 @@ class VideoPlayer extends HTMLElement {
     seekTooltip.style.left = `${e.pageX - rect.left}px`;
   }
 
+  skipAhead(e, video, progressBar, seek) {
+    const skipTo = e.target.dataset.seek
+      ? e.target.dataset.seek
+      : e.target.value;
+    video.currentTime = skipTo;
+    progressBar.value = skipTo;
+    seek.value = skipTo;
+  }
+
+  // doesn't work without passing the event object
+  updateVolume(e, video, volume) {
+    if (video.muted) {
+      console.log("something");
+      video.muted = false;
+    }
+
+    video.volume = volume.value;
+  }
+
+  showSettings(settingsMenu) {
+    settingsMenu.classList.toggle("active");
+  }
+
+  showFirstOptions(option, listMain, listSecondaryOne, settingsMenu) {
+    if (option.dataset.option == 0) {
+      listMain.classList.add("optionClicked");
+      listSecondaryOne.classList.add("optionClicked");
+      if (listSecondaryOne.classList.contains("optionClicked")) {
+        settingsMenu.style.height = "150px";
+      }
+    }
+  }
   // // Connecting events to methods
   connectedCallback() {
     // play button play
@@ -501,6 +711,7 @@ class VideoPlayer extends HTMLElement {
       ".fullscreen-btn img"
     );
     const videoControls = this.shadowRoot.querySelector(".video-controls");
+    const volume = this.shadowRoot.getElementById("volume");
 
     const playBtn = this.shadowRoot.querySelector("#play-btn");
     const pip = this.shadowRoot.querySelector(".pip-btn");
@@ -514,22 +725,28 @@ class VideoPlayer extends HTMLElement {
     const playbackSetting = this.shadowRoot.querySelector(
       ".option-setting.playback"
     );
+
+    // settings
     const settingsList = this.shadowRoot.querySelector(".settings-list");
-
-    const playbackOptions = this.shadowRoot.querySelector(".playback-options");
+    const settingsMenu = this.shadowRoot.querySelector(".settings-menu");
+    const optionsFirst = this.shadowRoot.querySelectorAll(".list-main a");
+    const listMain = this.shadowRoot.querySelector(".list-main");
+    const listSecondaryOne = this.shadowRoot.querySelector(".list-second");
+    const listSecondaryTwo = this.shadowRoot.querySelector(".list-third");
+    const listSecondaryThird = this.shadowRoot.querySelector(".list-fourth");
+    const menuBack = this.shadowRoot.querySelectorAll(".menu-back");
     const settingsBtn = this.shadowRoot.querySelector(".settings-btn");
-    const closeBtn = this.shadowRoot.querySelector("#close-btn");
 
-    playbackSetting.addEventListener("click", () => {
-      playbackOptions.classList.remove("hide");
-    });
+    // playbackSetting.addEventListener("click", () => {
+    //   playbackOptions.classList.remove("hide");
+    // });
 
-    closeBtn.addEventListener("click", () => {
-      playbackOptions.classList.add("hide");
-    });
+    // closeBtn.addEventListener("click", () => {
+    //   playbackOptions.classList.add("hide");
+    // });
 
     pip.addEventListener("click", () => {
-      // video.playbackRate = 3;
+      video.playbackRate = 3;
     });
 
     playBtn.addEventListener("click", () => {
@@ -562,11 +779,29 @@ class VideoPlayer extends HTMLElement {
 
     // settings
     settingsBtn.addEventListener("click", () => {
-      settingsList.classList.toggle("hide");
+      this.showSettings(settingsMenu);
     });
 
     seek.addEventListener("mousemove", (e) => {
       this.updateSeekTooltip(e, video, seek, seekTooltip);
+    });
+
+    seek.addEventListener("input", (e) => {
+      seek.addEventListener(
+        "input",
+        this.skipAhead(e, video, progressBar, seek)
+      );
+    });
+
+    volume.addEventListener("input", (e) => {
+      this.updateVolume(e, video, volume);
+    });
+
+    optionsFirst.forEach((option) => {
+      option.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.showFirstOptions(option, listMain, listSecondaryOne, settingsMenu);
+      });
     });
   }
 }
